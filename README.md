@@ -35,15 +35,15 @@ Docker is recommended to avoid Python version conflicts and ensure consistent en
 # Build and run experiments in Docker
 ./docker-run.sh --build
 
-# Or use docker-compose directly
-docker-compose build
-docker-compose run --rm dgx-spark-experiments
+# Or use docker compose directly
+docker compose build
+docker compose run --rm dgx-spark-experiments
 
 # Run specific experiment
-docker-compose run --rm dgx-spark-experiments python benchmarks/inference.py --model "meta-llama/Llama-3.3-8B-Instruct" --size "8B"
+docker compose run --rm dgx-spark-experiments python benchmarks/inference.py --model "meta-llama/Llama-3.3-8B-Instruct" --size "8B"
 
 # Access container shell for debugging
-docker-compose run --rm dgx-spark-experiments /bin/bash
+docker compose run --rm dgx-spark-experiments /bin/bash
 ```
 
 **Docker Requirements:**
