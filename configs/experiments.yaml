@@ -1,0 +1,117 @@
+# Experiment configuration for DGX Spark NLP experiments
+# This file defines all experiments and their dependencies
+
+experiments:
+  # Environment setup (should run first)
+  - id: setup_environment
+    name: "Setup Environment"
+    script: "setup/check_environment.py"
+    dependencies: []
+    enabled: true
+    timeout: 300
+
+  # Inference benchmarks
+  - id: benchmark_inference_llama_3_3_8b
+    name: "Inference Benchmark - Llama 3.3 8B"
+    script: "benchmarks/inference.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 3600
+    # Note: Script arguments should be passed via environment or config
+
+  - id: benchmark_inference_qwen_3_7b
+    name: "Inference Benchmark - Qwen 3 7B"
+    script: "benchmarks/inference.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 3600
+
+  - id: benchmark_inference_gemma_3_4b
+    name: "Inference Benchmark - Gemma 3 4B"
+    script: "benchmarks/inference.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 3600
+
+  - id: benchmark_inference_granite_4_8b
+    name: "Inference Benchmark - Granite 4.0 8B"
+    script: "benchmarks/inference.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 3600
+
+  - id: benchmark_inference_llama_3_3_70b_int8
+    name: "Inference Benchmark - Llama 3.3 70B INT8"
+    script: "benchmarks/inference.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
+  # Inference engine comparison
+  - id: compare_engines_vllm_llama_cpp
+    name: "Inference Engine Comparison - vLLM vs llama.cpp"
+    script: "benchmarks/inference_engines.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
+  # Training benchmarks
+  - id: benchmark_training_lora
+    name: "Training Benchmark - LoRA"
+    script: "benchmarks/training.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
+  # Framework comparison
+  - id: compare_frameworks_pytorch_tensorflow_jax
+    name: "Framework Comparison - PyTorch vs TensorFlow vs JAX"
+    script: "benchmarks/framework_comparison.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
+  # Financial fine-tuning
+  - id: finetune_granite_4_financial
+    name: "Fine-tune Granite 4.0 on Financial PhraseBank"
+    script: "experiments/financial_finetuning/finetune_financial.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 14400
+
+  - id: finetune_gemma_3_financial
+    name: "Fine-tune Gemma 3 on Financial PhraseBank"
+    script: "experiments/financial_finetuning/finetune_financial.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 14400
+
+  - id: finetune_qwen_3_financial
+    name: "Fine-tune Qwen 3 7B on Financial PhraseBank"
+    script: "experiments/financial_finetuning/finetune_financial.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 14400
+
+  # Multimodal experiments
+  - id: benchmark_multimodal_qwen3_vl
+    name: "Multimodal Benchmark - Qwen3-VL"
+    script: "experiments/multimodal/vision_language.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
+  - id: benchmark_multimodal_deepseek_vl2
+    name: "Multimodal Benchmark - DeepSeek-VL2"
+    script: "experiments/multimodal/vision_language.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
+  - id: benchmark_multimodal_gemma3
+    name: "Multimodal Benchmark - Gemma 3"
+    script: "experiments/multimodal/vision_language.py"
+    dependencies: ["setup_environment"]
+    enabled: true
+    timeout: 7200
+
