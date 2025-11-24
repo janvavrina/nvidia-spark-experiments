@@ -2,16 +2,21 @@
 # Optimized for Grace Blackwell architecture (ARM64)
 # Note: For ARM64, some packages may need to be built from source
 
-FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+# Use latest CUDA 12.x image (updated to avoid deprecated images)
+FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 # For ARM64, we may need to use a different base or build from source
 # Uncomment if you need ARM64-specific base image:
-# FROM --platform=linux/arm64 nvidia/cuda:12.1.0-devel-ubuntu22.04
+# FROM --platform=linux/arm64 nvidia/cuda:12.4.0-devel-ubuntu22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+
+# Disable NVIDIA entrypoint to avoid conflicts
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -94,6 +99,9 @@ RUN chmod +x setup/*.sh setup/*.py run_experiments.py reports/generate_report.py
 
 # Set Python path
 ENV PYTHONPATH=/workspace:$PYTHONPATH
+
+# Override NVIDIA entrypoint to avoid conflicts
+ENTRYPOINT []
 
 # Default command
 CMD ["python", "run_experiments.py", "--config", "configs/experiments.yaml"]
