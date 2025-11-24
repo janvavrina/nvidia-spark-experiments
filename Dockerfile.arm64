@@ -1,0 +1,105 @@
+# Dockerfile for DGX Spark NLP Experiments - ARM64 Optimized
+# Specifically for Grace Blackwell architecture
+
+FROM --platform=linux/arm64 nvidia/cuda:12.1.0-devel-ubuntu22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3.10-dev \
+    python3-pip \
+    git \
+    wget \
+    curl \
+    build-essential \
+    cmake \
+    ninja-build \
+    libopenblas-dev \
+    liblapack-dev \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symlink for python
+RUN ln -s /usr/bin/python3.10 /usr/bin/python
+
+# Upgrade pip
+RUN pip3 install --upgrade pip setuptools wheel
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+# For ARM64, some packages may need special handling
+RUN pip3 install --no-cache-dir \
+    numpy \
+    scipy \
+    pandas \
+    matplotlib \
+    seaborn \
+    scikit-learn \
+    tqdm \
+    pyyaml \
+    psutil \
+    requests \
+    aiohttp \
+    Pillow
+
+# Install PyTorch for ARM64
+# Note: PyTorch for ARM64 may need to be built from source or use nightly builds
+RUN pip3 install --no-cache-dir \
+    torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cu121 \
+    || pip3 install --no-cache-dir \
+    torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/nightly/cu121
+
+# Install ML/AI libraries
+RUN pip3 install --no-cache-dir \
+    transformers \
+    datasets \
+    accelerate \
+    bitsandbytes \
+    peft \
+    trl \
+    sentencepiece \
+    protobuf \
+    safetensors \
+    huggingface-hub \
+    wandb \
+    mlflow \
+    GPUtil \
+    nvidia-ml-py3 \
+    pynvml
+
+# Install inference engines
+# vLLM and llama-cpp-python may need to be built from source on ARM64
+RUN pip3 install --no-cache-dir vllm || \
+    echo "vLLM installation failed - may need to build from source for ARM64"
+
+RUN pip3 install --no-cache-dir llama-cpp-python || \
+    echo "llama-cpp-python installation failed - may need to build from source for ARM64"
+
+# Copy project files
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p results/benchmarks results/finetuning results/multimodal checkpoints mlruns
+
+# Make scripts executable
+RUN chmod +x setup/*.sh setup/*.py run_experiments.py reports/generate_report.py
+
+# Set Python path
+ENV PYTHONPATH=/workspace:$PYTHONPATH
+
+# Default command
+CMD ["python", "run_experiments.py", "--config", "configs/experiments.yaml"]
+

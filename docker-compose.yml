@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  dgx-spark-experiments:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # For ARM64 (Grace Blackwell), use:
+      # dockerfile: Dockerfile.arm64
+    image: dgx-spark-nlp-experiments:latest
+    container_name: dgx-spark-nlp-experiments
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - HF_TOKEN=${HF_TOKEN:-}
+      - WANDB_API_KEY=${WANDB_API_KEY:-}
+    volumes:
+      # Mount results directory to persist data
+      - ./results:/workspace/results
+      - ./checkpoints:/workspace/checkpoints
+      - ./mlruns:/workspace/mlruns
+      # Mount configs for easy editing
+      - ./configs:/workspace/configs
+      # Optional: mount model cache to avoid re-downloading
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    # Override command if needed
+    # command: ["python", "run_experiments.py", "--config", "configs/experiments.yaml"]
+

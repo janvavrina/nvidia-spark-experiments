@@ -27,6 +27,32 @@ This repository contains a structured framework for benchmarking and experimenti
 
 ## Quick Start
 
+### Option 1: Docker (Recommended)
+
+Docker is recommended to avoid Python version conflicts and ensure consistent environment.
+
+```bash
+# Build and run experiments in Docker
+./docker-run.sh --build
+
+# Or use docker-compose directly
+docker-compose build
+docker-compose run --rm dgx-spark-experiments
+
+# Run specific experiment
+docker-compose run --rm dgx-spark-experiments python benchmarks/inference.py --model "meta-llama/Llama-3.3-8B-Instruct" --size "8B"
+
+# Access container shell for debugging
+docker-compose run --rm dgx-spark-experiments /bin/bash
+```
+
+**Docker Requirements:**
+- Docker with NVIDIA Container Toolkit
+- CUDA 12.1+ compatible drivers
+- At least 50GB free disk space for images and models
+
+### Option 2: Native Installation
+
 ### 1. Environment Setup
 
 ```bash
@@ -192,9 +218,61 @@ Integrates with:
 
 Set `WANDB_API_KEY` environment variable to enable W&B tracking.
 
+## Docker Setup Details
+
+The Docker setup includes:
+- **Base Image**: NVIDIA CUDA 12.1 with Ubuntu 22.04
+- **Python**: 3.10 (explicit version to avoid conflicts)
+- **All Dependencies**: Pre-installed from requirements.txt
+- **Volume Mounts**: 
+  - `results/` - Persists all benchmark results
+  - `checkpoints/` - Saves experiment checkpoints
+  - `~/.cache/huggingface/` - Reuses downloaded models
+- **GPU Support**: Uses NVIDIA Container Toolkit
+
+**For ARM64 (Grace Blackwell):**
+```bash
+# Use the ARM64-optimized Dockerfile
+docker build -f Dockerfile.arm64 -t dgx-spark-nlp-experiments:arm64 .
+docker run --gpus all --platform linux/arm64 \
+    -v $(pwd)/results:/workspace/results \
+    dgx-spark-nlp-experiments:arm64
+```
+
+### Building Custom Docker Image
+
+If you need to customize the environment:
+
+```bash
+# Build with custom arguments
+docker build -t dgx-spark-nlp-experiments:custom .
+
+# Run with custom command
+docker run --gpus all -v $(pwd)/results:/workspace/results \
+    dgx-spark-nlp-experiments:custom \
+    python benchmarks/inference.py --model "your-model" --size "8B"
+```
+
 ## Troubleshooting
 
-### Out of Memory Errors
+### Docker Issues
+
+**NVIDIA Docker not working:**
+```bash
+# Install NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+    sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+sudo systemctl restart docker
+```
+
+**Python version conflicts in Docker:**
+- The Dockerfile explicitly uses Python 3.10
+- If you need a different version, modify the Dockerfile
+
+**Out of Memory Errors**
 
 - Reduce batch size
 - Use quantization (INT8/INT4)
